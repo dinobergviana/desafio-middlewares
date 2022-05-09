@@ -11,6 +11,17 @@ const users = [];
 
 function checksExistsUserAccount(request, response, next) {
   // Complete aqui
+  const { username } = request.headers
+
+  const user = users.find(user => user.username === username)
+
+  if(!user) {
+    return response.status(400).json({ error: `Unable to find a user with username: ${ username }` })
+  }
+
+  request.user = user
+
+  return next()
 }
 
 function checksCreateTodosUserAvailability(request, response, next) {
@@ -23,6 +34,17 @@ function checksTodoExists(request, response, next) {
 
 function findUserById(request, response, next) {
   // Complete aqui
+  const { id } = request.params
+
+  const user = users.find(user => user.id === id)
+
+  if(!user) {
+    return response.status(400).json({ error: `Unable to find a user with id: ${ id }` })
+  }
+
+  request.user = user
+
+  return next()
 }
 
 app.post('/users', (request, response) => {
