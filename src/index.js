@@ -10,41 +10,72 @@ app.use(cors());
 const users = [];
 
 function checksExistsUserAccount(request, response, next) {
-  // Complete aqui
-  const { username } = request.headers
+  const { username } = request.headers;
 
-  const user = users.find(user => user.username === username)
+  const user = users.find(user => user.username === username);
 
-  if(!user) {
-    return response.status(400).json({ error: `Unable to find a user with username: ${ username }` })
+  if (!user) {
+    return response.status(404).json({ error: `Unable to find a user with username: ${ username }` });
   }
 
-  request.user = user
+  request.user = user;
 
-  return next()
+  return next();
 }
 
 function checksCreateTodosUserAvailability(request, response, next) {
-  // Complete aqui
+  const { user } = request;
+
+  if ((!user.pro && user.todos.length < 10) || user.pro) {
+    return next();
+  }
+
+  return response.status(403).json({ error: 'Account expired' });
 }
 
 function checksTodoExists(request, response, next) {
-  // Complete aqui
+  const { username } = request.headers;
+  const { id } = request.params;
+
+  const user = users.find((user) => user.username === username);
+
+  if (!validate(id)) {
+    return response.status(400).json({ error: 'Invalid id' });
+  }
+
+  if (!user) {
+    return response.status(404).json({ error: 'User not found' });
+  }
+
+  const todo = user.todos.find((todo) => todo.id === id);
+
+  if (!todo) {
+    return response.status(404).json({ error: 'Todo not found' })
+  }
+
+  request.user = user;
+  request.todo = todo;
+
+  return next()
+
 }
 
 function findUserById(request, response, next) {
-  // Complete aqui
-  const { id } = request.params
+  const { id } = request.params;
 
-  const user = users.find(user => user.id === id)
-
-  if(!user) {
-    return response.status(400).json({ error: `Unable to find a user with id: ${ id }` })
+  if (!validate(id)) {
+    return response.status(404).json({ error: 'Invalid id' });
   }
 
-  request.user = user
+  const user = users.find(user => user.id === id);
 
-  return next()
+  if (!user) {
+    return response.status(404).json({ error: `Unable to find a user with id: ${ id }` });
+  }
+
+  request.user = user;
+
+  return next();
 }
 
 app.post('/users', (request, response) => {
